@@ -22,6 +22,7 @@ public:
 };
 
 wxIMPLEMENT_APP_CONSOLE(MyApp);
+//wxIMPLEMENT_APP(MyApp);
 
 // ====================================================================
 // Window class
@@ -71,7 +72,7 @@ void thread_func(wxGLCanvas* canvas)
 	{
 		boost::this_thread::interruption_point();
 
-		cout << ":: still running" << endl;
+		// cout << ":: still running" << endl;
 
 		// TODO: is canvas->GetSize() thread-safe? probably not...
 		scene.resize(canvas->GetSize().x, canvas->GetSize().y);
@@ -95,7 +96,7 @@ void thread_func(wxGLCanvas* canvas)
 
 bool MyApp::OnInit()
 {
-	MyFrame *frame = new MyFrame( "Hello World", wxPoint(50, 50), wxSize(450, 340) );
+	MyFrame *frame = new MyFrame( "Hello World", wxPoint(50, 50), wxSize(800, 600) );
 	
 
 	frame->Show( true );

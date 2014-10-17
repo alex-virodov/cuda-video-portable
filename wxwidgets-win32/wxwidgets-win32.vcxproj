@@ -29,6 +29,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 6.5.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -49,13 +50,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WXUSINGDLL;_WINDOWS;__WXMSW__;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>D:\Projects\wxwidgets-opengl-cuda\boost_1_56_0;D:\Projects\wxwidgets-opengl-cuda\include;D:\Projects\wxwidgets-opengl-cuda\lib\vc100_dll\mswud</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v6.5\include;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\boost_1_56_0;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\include;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\lib\vc100_dll\mswud</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Projects\wxwidgets-opengl-cuda\lib\vc100_dll;D:\Projects\wxwidgets-opengl-cuda\boost_1_56_0\stage\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glu32.lib;opengl32.lib;wxmsw30ud_gl.lib;wxbase30ud.lib;wxmsw30ud_core.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v6.5\lib\Win32;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\lib\vc100_dll;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\boost_1_56_0\stage\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>cudart.lib;glu32.lib;opengl32.lib;wxmsw30ud_gl.lib;wxbase30ud.lib;wxmsw30ud_core.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -75,11 +76,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Bitmap.h" />
     <ClInclude Include="glscene.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="cuda_main.cu">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <FileType>Document</FileType>
+    </CudaCompile>
+    <ClCompile Include="Bitmap.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="glscene.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -89,5 +98,6 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 6.5.targets" />
   </ImportGroup>
 </Project>
