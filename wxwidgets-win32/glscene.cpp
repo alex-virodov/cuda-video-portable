@@ -75,7 +75,7 @@ GLScene::GLScene() : impl(new GLSceneImpl)
 		impl->img_width  = frame1->width;
 		impl->img_height = frame1->height;
 
-		impl->me = make_me_cpu(impl->img_width, impl->img_height);
+		impl->me = make_me_cuda(impl->img_width, impl->img_height);
 
 		glGenTextures( impl->n_frames, impl->tex_frames );
 		glGenTextures(              1, impl->tex_result );

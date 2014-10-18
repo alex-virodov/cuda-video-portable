@@ -83,7 +83,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="cuda_main.cu">
+    <CudaCompile Include="me_cuda.cu">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <FileType>Document</FileType>
     </CudaCompile>
