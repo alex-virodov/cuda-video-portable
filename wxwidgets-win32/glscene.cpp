@@ -1,46 +1,143 @@
 #include "stdafx.h"
-#include "glscene.h"
+#include <memory>
 #include "GL/gl.h"
 #include "GL/glu.h"
-#include <memory>
 #include "Bitmap.h"
 
-// Taken from Lesson 5 of NeHe OpenGL (3d version of hello world)
+#include "glscene.h"
+#include "me.h"
+
+// Most render code is taken from Lesson 5 of NeHe OpenGL (3d version of hello world)
 // http://nehe.gamedev.net/tutorial/3d_shapes/10035/
+
+// CUDA interoperability
+// http://3dgep.com/opengl-interoperability-with-cuda/
+
 
 class GLSceneImpl
 {
 public:
 	GLfloat	rtri;    // Angle For The Triangle ( NEW )
 	GLfloat	rquad;   // Angle For The Quad ( NEW )
-	GLuint  texture;
+	
+	GLuint  img_width;
+	GLuint  img_height;
 
-	GLSceneImpl() : rtri(0), rquad(0), texture(0) {}
-};
+	static const int n_frames = 2;
 
-GLScene::GLScene() : impl(new GLSceneImpl)
-{
-	using namespace ThirdPartyBitmap;
+	// TODO: Make texture management objects. Or use library.
+	GLuint  tex_frames[n_frames]; // textures for frames
+	GLuint  tex_result[1];        // textures for result of processing
 
-	std::unique_ptr<Bitmap> image /*=*/ (new Bitmap());
+	IMotionEstimation* me;
 
-	if (image->loadBMP("Ancient_road_surface.bmp"))
+	GLSceneImpl() : rtri(0), rquad(200) 
 	{
-		glGenTextures( 1, &impl->texture );
-		glBindTexture( GL_TEXTURE_2D, impl->texture );
- 
+		tex_result[0] = 0;
+		for (int i = 0; i < n_frames; i++) { tex_frames[i] = 0; }
+	}
+
+	void make_texture(GLuint tex_id, void* img_data)
+	{
+		glBindTexture( GL_TEXTURE_2D, tex_id );
+
 		// set basic parameters
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-		// Create texture data (4-component unsigned byte)
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, image->data );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, img_width, img_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data );
+	}
+};
+
+void cuda_opengl_init(int n_frames, GLuint* tex_frames, GLuint tex_result);
+void cuda_opengl_process();
+
+
+
+GLScene::GLScene() : impl(new GLSceneImpl)
+{
+	glewInit();
+
+	using namespace ThirdPartyBitmap;
+
+	std::unique_ptr<Bitmap> frame1 /*=*/ (new Bitmap());
+	std::unique_ptr<Bitmap> frame2 /*=*/ (new Bitmap());
+
+	assert(impl->n_frames == 2);
+
+	if (frame1->loadBMP("ball_frame1.bmp") && frame2->loadBMP("ball_frame2.bmp"))
+	{
+		assert(frame1->width  == frame2->width );
+		assert(frame1->height == frame2->height);
+
+		impl->img_width  = frame1->width;
+		impl->img_height = frame1->height;
+
+		impl->me = make_me_cpu(impl->img_width, impl->img_height);
+
+		glGenTextures( impl->n_frames, impl->tex_frames );
+		glGenTextures(              1, impl->tex_result );
+
+		// Make result texture
+		impl->make_texture(impl->tex_result[0], /*img_data=*/0);
+
+		// Make source frames
+		for (int i = 0; i < impl->n_frames; i++) 
+		{
+			// TODO: work with lists if more than two frames are expected
+			void* img_data = (i == 0 ? frame1->data : frame2->data);
+
+			impl->make_texture(impl->tex_frames[i], img_data);
+		}
+
+		impl->me->load_frame(0, frame1->data);
+		impl->me->load_frame(1, frame2->data);
+		impl->me->estimate();
+		impl->me->store_result(impl->tex_result[0]);
+
+
+
+
+
+#if 0
+		cuda_opengl_init(impl->n_frames, impl->tex_frames, impl->tex_result[0]);
+
+
+
+//		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image->width, image->height, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
+
+
+		// TODO: Check that we have the PBO extension
+		glGenBuffers( 1, &impl->pbo );
+		glBindBuffer( GL_PIXEL_UNPACK_BUFFER, impl->pbo );
+		glBufferData( GL_PIXEL_UNPACK_BUFFER, image->width*image->height*4, image->data, GL_STREAM_DRAW );
+ 
+
+		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, impl->pbo);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image->width, image->height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
 
 		// Unbind the texture
-		glBindTexture( GL_TEXTURE_2D, 0 );
+		glBindBuffer   ( GL_PIXEL_UNPACK_BUFFER, 0 );
+		glBindTexture  ( GL_TEXTURE_2D, 0 );
+
+		cuda_opengl_init(impl->texture, impl->pbo);
+
+		// Copy from PBO to texture
+//		cuda_opengl_process();
+#endif
 	}
+}
+
+GLScene::~GLScene()
+{
+	glDeleteTextures(impl->n_frames, impl->tex_frames);
+	glDeleteTextures(             1, impl->tex_result);
+//	glDeleteBuffers (1, &impl->pbo);
+
+	delete impl;
 }
 
 void GLScene::resize(int width, int height)
@@ -75,43 +172,17 @@ void GLScene::render()
 	glTranslatef(-1.5f,0.0f,-6.0f);						// Move Left 1.5 Units And Into The Screen 6.0
 	glRotatef(impl->rtri,0.0f,1.0f,0.0f);						// Rotate The Triangle On The Y axis ( NEW )
 
-	glBindTexture(GL_TEXTURE_2D, impl->texture);        // Select Our Texture
-
-	glDisable(GL_TEXTURE_2D);							
-	glBegin(GL_TRIANGLES);								// Start Drawing A Triangle
-		glColor3f(1.0f,0.0f,0.0f);						// Red
-		glVertex3f( 0.0f, 1.0f, 0.0f);					// Top Of Triangle (Front)
-		glColor3f(0.0f,1.0f,0.0f);						// Green
-		glVertex3f(-1.0f,-1.0f, 1.0f);					// Left Of Triangle (Front)
-		glColor3f(0.0f,0.0f,1.0f);						// Blue
-		glVertex3f( 1.0f,-1.0f, 1.0f);					// Right Of Triangle (Front)
-		glColor3f(1.0f,0.0f,0.0f);						// Red
-		glVertex3f( 0.0f, 1.0f, 0.0f);					// Top Of Triangle (Right)
-		glColor3f(0.0f,0.0f,1.0f);						// Blue
-		glVertex3f( 1.0f,-1.0f, 1.0f);					// Left Of Triangle (Right)
-		glColor3f(0.0f,1.0f,0.0f);						// Green
-		glVertex3f( 1.0f,-1.0f, -1.0f);					// Right Of Triangle (Right)
-		glColor3f(1.0f,0.0f,0.0f);						// Red
-		glVertex3f( 0.0f, 1.0f, 0.0f);					// Top Of Triangle (Back)
-		glColor3f(0.0f,1.0f,0.0f);						// Green
-		glVertex3f( 1.0f,-1.0f, -1.0f);					// Left Of Triangle (Back)
-		glColor3f(0.0f,0.0f,1.0f);						// Blue
-		glVertex3f(-1.0f,-1.0f, -1.0f);					// Right Of Triangle (Back)
-		glColor3f(1.0f,0.0f,0.0f);						// Red
-		glVertex3f( 0.0f, 1.0f, 0.0f);					// Top Of Triangle (Left)
-		glColor3f(0.0f,0.0f,1.0f);						// Blue
-		glVertex3f(-1.0f,-1.0f,-1.0f);					// Left Of Triangle (Left)
-		glColor3f(0.0f,1.0f,0.0f);						// Green
-		glVertex3f(-1.0f,-1.0f, 1.0f);					// Right Of Triangle (Left)
-	glEnd();											// Done Drawing The Pyramid
 
 	glLoadIdentity();									// Reset The Current Modelview Matrix
-	glTranslatef(1.5f,0.0f,-7.0f);						// Move Right 1.5 Units And Into The Screen 7.0
+	glTranslatef(0.0f,0.0f,-7.0f);						// Move Right 1.5 Units And Into The Screen 7.0
 	glRotatef(impl->rquad,1.0f,1.0f,1.0f);					// Rotate The Quad On The X axis ( NEW )
 
 	glEnable(GL_TEXTURE_2D);							// Enable Texture Mapping 
 	glColor3d(1,1,1);
 
+	assert(impl->n_frames == 2);
+
+	glBindTexture(GL_TEXTURE_2D, impl->tex_frames[0]);        // Select Our Texture
 	glBegin(GL_QUADS);
 		// Front Face
 		glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);  // Bottom Left Of The Texture and Quad
@@ -123,6 +194,10 @@ void GLScene::render()
 		glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);  // Top Right Of The Texture and Quad
 		glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);  // Top Left Of The Texture and Quad
 		glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);  // Bottom Left Of The Texture and Quad
+	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, impl->tex_frames[1]);        // Select Our Texture
+	glBegin(GL_QUADS);
 		// Top Face
 		glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);  // Top Left Of The Texture and Quad
 		glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  1.0f,  1.0f);  // Bottom Left Of The Texture and Quad
@@ -133,6 +208,10 @@ void GLScene::render()
 		glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f, -1.0f, -1.0f);  // Top Left Of The Texture and Quad
 		glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);  // Bottom Left Of The Texture and Quad
 		glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);  // Bottom Right Of The Texture and Quad
+	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, impl->tex_result[0]);        // Select Our Texture
+	glBegin(GL_QUADS);
 		// Right face
 		glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);  // Bottom Right Of The Texture and Quad
 		glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);  // Top Right Of The Texture and Quad

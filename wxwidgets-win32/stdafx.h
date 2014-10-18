@@ -11,6 +11,8 @@
 #include <tchar.h>
 #include <iostream>
 
+#include <GL/glew.h>
+
 #include <wx/wx.h>
 #include <wx/glcanvas.h>
 

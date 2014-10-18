@@ -7,6 +7,7 @@ class GLScene
 {
 public:
 	GLScene();
+	~GLScene();
 	
 	void resize(int width, int height);
 	void render();

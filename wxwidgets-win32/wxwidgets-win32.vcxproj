@@ -50,13 +50,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WXUSINGDLL;_WINDOWS;__WXMSW__;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v6.5\include;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\boost_1_56_0;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\include;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\lib\vc100_dll\mswud</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\alex\Desktop\wxwidgets-opengl-cuda\glew-1.11.0\include;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v6.5\include;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\boost_1_56_0;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\include;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\lib\vc100_dll\mswud</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v6.5\lib\Win32;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\lib\vc100_dll;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\boost_1_56_0\stage\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>cudart.lib;glu32.lib;opengl32.lib;wxmsw30ud_gl.lib;wxbase30ud.lib;wxmsw30ud_core.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\alex\Desktop\wxwidgets-opengl-cuda\glew-1.11.0\lib\Release\Win32;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v6.5\lib\Win32;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\lib\vc100_dll;C:\Users\alex\Desktop\wxwidgets-opengl-cuda\boost_1_56_0\stage\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32.lib;cudart.lib;glu32.lib;opengl32.lib;wxmsw30ud_gl.lib;wxbase30ud.lib;wxmsw30ud_core.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -78,6 +78,7 @@
   <ItemGroup>
     <ClInclude Include="Bitmap.h" />
     <ClInclude Include="glscene.h" />
+    <ClInclude Include="me.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -90,6 +91,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="glscene.cpp" />
+    <ClCompile Include="me_cpu.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
