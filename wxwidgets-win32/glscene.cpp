@@ -2,10 +2,10 @@
 #include <memory>
 #include "GL/gl.h"
 #include "GL/glu.h"
-#include "Bitmap.h"
 
 #include "glscene.h"
 #include "me.h"
+#include "video.h"
 
 // Most render code is taken from Lesson 5 of NeHe OpenGL (3d version of hello world)
 // http://nehe.gamedev.net/tutorial/3d_shapes/10035/
@@ -60,20 +60,18 @@ GLScene::GLScene() : impl(new GLSceneImpl)
 {
 	glewInit();
 
-	using namespace ThirdPartyBitmap;
-
-	std::unique_ptr<Bitmap> frame1 /*=*/ (new Bitmap());
-	std::unique_ptr<Bitmap> frame2 /*=*/ (new Bitmap());
+	std::unique_ptr<IVideoReader> frame1 /*=*/ (make_opencv_image_reader("ball_frame1.bmp"));
+	std::unique_ptr<IVideoReader> frame2 /*=*/ (make_opencv_image_reader("ball_frame2.bmp"));
 
 	assert(impl->n_frames == 2);
 
-	if (frame1->loadBMP("ball_frame1.bmp") && frame2->loadBMP("ball_frame2.bmp"))
+	if (frame1->is_loaded() && frame2->is_loaded())
 	{
-		assert(frame1->width  == frame2->width );
-		assert(frame1->height == frame2->height);
+		assert(frame1->get_width () == frame2->get_width ());
+		assert(frame1->get_height() == frame2->get_height());
 
-		impl->img_width  = frame1->width;
-		impl->img_height = frame1->height;
+		impl->img_width  = frame1->get_width();
+		impl->img_height = frame1->get_height();
 
 		impl->me = make_me_cuda(impl->img_width, impl->img_height);
 
@@ -87,13 +85,13 @@ GLScene::GLScene() : impl(new GLSceneImpl)
 		for (int i = 0; i < impl->n_frames; i++) 
 		{
 			// TODO: work with lists if more than two frames are expected
-			void* img_data = (i == 0 ? frame1->data : frame2->data);
+			void* img_data = (i == 0 ? frame1->get_next_frame() : frame2->get_next_frame());
 
 			impl->make_texture(impl->tex_frames[i], img_data);
 		}
 
-		impl->me->load_frame(0, frame1->data);
-		impl->me->load_frame(1, frame2->data);
+		impl->me->load_frame(0, frame1->get_next_frame());
+		impl->me->load_frame(1, frame2->get_next_frame());
 		impl->me->estimate();
 		impl->me->store_result(impl->tex_result[0]);
 
