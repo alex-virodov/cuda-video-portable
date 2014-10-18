@@ -164,7 +164,7 @@ void Bitmap::reset(void) {
 bool Bitmap::convert24(char* tempData) {
 	int offset,diff;
 
-	diff=width*height*RGB_BYTE_SIZE;
+	diff=width*height*4;
     //allocate the buffer for the final image data
     data=new char[diff];
 
@@ -178,22 +178,25 @@ bool Bitmap::convert24(char* tempData) {
     if(height>0) {
         offset=padWidth-byteWidth;
         //count backwards so you start at the front of the image
+		int j = 0;
         for(int i=0;i<dataSize;i+=3) {
             //jump over the padding at the start of a new line
             if((i+1)%padWidth==0) {
                 i+=offset;
             }
             //transfer the data
-            *(data+i+2)=*(tempData+i);
-            *(data+i+1)=*(tempData+i+1);
-            *(data+i)=*(tempData+i+2);
+            *(data+j+3)=0;
+            *(data+j+2)=*(tempData+i);
+            *(data+j+1)=*(tempData+i+1);
+            *(data+j)=*(tempData+i+2);
+			j+=4;
         }
     }
 
     //image parser for a forward image
     else {
         offset=padWidth-byteWidth;
-        int j=dataSize-3;
+        int j=dataSize-4;
         //count backwards so you start at the front of the image
 		//here you can start from the back of the file or the front,
 		//after the header  The only problem is that some programs
@@ -205,10 +208,11 @@ bool Bitmap::convert24(char* tempData) {
                 i+=offset;
             }
             //transfer the data
+            *(data+j+3)=0;
             *(data+j+2)=*(tempData+i);
             *(data+j+1)=*(tempData+i+1);
             *(data+j)=*(tempData+i+2);
-            j-=3;
+            j-=4;
         }
     }
 
@@ -218,7 +222,7 @@ bool Bitmap::convert24(char* tempData) {
 bool Bitmap::convert8(char* tempData) {
 	int offset,diff;
 
-	diff=width*height*RGB_BYTE_SIZE;
+	diff=width*height*4;
     //allocate the buffer for the final image data
     data=new char[diff];
 
@@ -242,6 +246,7 @@ bool Bitmap::convert8(char* tempData) {
             *(data+i)=colours[*(tempData+j)].rgbRed;
             *(data+i+1)=colours[*(tempData+j)].rgbGreen;
             *(data+i+2)=colours[*(tempData+j)].rgbBlue;
+            *(data+i+3)=0;
             j++;
         }
     }
@@ -251,7 +256,7 @@ bool Bitmap::convert8(char* tempData) {
         offset=padWidth-byteWidth;
         int j=dataSize-1;
         //count backwards so you start at the front of the image
-        for(int i=0;i<dataSize*RGB_BYTE_SIZE;i+=3) {
+        for(int i=0;i<dataSize*RGB_BYTE_SIZE;i+=4) {
             //jump over the padding at the start of a new line
             if((i+1)%padWidth==0) {
                 i+=offset;
@@ -260,6 +265,7 @@ bool Bitmap::convert8(char* tempData) {
             *(data+i)=colours[*(tempData+j)].rgbRed;
             *(data+i+1)=colours[*(tempData+j)].rgbGreen;
             *(data+i+2)=colours[*(tempData+j)].rgbBlue;
+            *(data+i+3)=0;
             j--;
         }
     }
