@@ -75,9 +75,9 @@ void thread_func(wxGLCanvas* canvas)
 		// cout << ":: still running" << endl;
 
 		// TODO: is canvas->GetSize() thread-safe? probably not...
+		// TODO: call resize only on resize
 		scene.resize(canvas->GetSize().x, canvas->GetSize().y);
 		scene.render();
-		scene.advance();
 
 		//	cout << boost::chrono::duration_cast<boost::chrono::milliseconds>(frame_clock::now() - last_frame_time) << endl;
 		//	last_frame_time = frame_clock::now();

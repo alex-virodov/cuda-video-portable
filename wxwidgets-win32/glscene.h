@@ -3,6 +3,9 @@
 
 class GLSceneImpl;
 
+// ====================================================================
+// Class to render the screen via OpenGL. Use pimpl to hide 
+// implementation details, which are in flux.
 class GLScene
 {
 public:
@@ -11,7 +14,6 @@ public:
 	
 	void resize(int width, int height);
 	void render();
-	void advance();
 
 private:
 	GLSceneImpl* impl;
