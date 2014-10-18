@@ -18,41 +18,41 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="video.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="me.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="glscene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>PCH</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>PCH</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\me.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\video.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\glscene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="wxwidgets-win32.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="glscene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="me_cpu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>PCH</Filter>
     </ClCompile>
-    <ClCompile Include="video_opencv.cpp">
+    <ClCompile Include="..\..\src\me_cpu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\video_opencv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\wx_gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\glscene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="me_cuda.cu">
+    <CudaCompile Include="..\..\src\me_cuda.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>
