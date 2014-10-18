@@ -1,7 +1,8 @@
 #ifndef __ME_H__
 #define __ME_H__
 
-#include <GL/GL.h>
+#include <GL/gl.h>
+#include <limits>
 
 // ====================================================================
 // Interface for motion estimation functionality

@@ -2,14 +2,19 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <stdio.h>
 
+#ifdef _MSC_VER
 #include <Windows.h>	// needed for gl interop
+#endif
+
 #include "cuda.h"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include "cuda_gl_interop.h"
 #include "vector_types.h"
 #include "me.h"
+
 
 
 // ====================================================================

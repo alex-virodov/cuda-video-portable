@@ -84,8 +84,8 @@ public:
 	GLTexture frame2;
 	GLTexture result;
 
-	std::unique_ptr<IMotionEstimation> me;
-	std::unique_ptr<IVideoReader>      video;
+	std::auto_ptr<IMotionEstimation> me;
+	std::auto_ptr<IVideoReader>      video;
 
 	GLSceneImpl();
 
@@ -101,7 +101,7 @@ public:
 GLSceneImpl::GLSceneImpl() : cube_angle(200) 
 {
 	// Load video
-	video = std::unique_ptr<IVideoReader>(
+	video = std::auto_ptr<IVideoReader>(
 		make_opencv_video_reader("clipcanvas_14348_H264_320x180.mp4"));
 
 	// Make motion estimation object
@@ -110,7 +110,7 @@ GLSceneImpl::GLSceneImpl() : cube_angle(200)
 		img_width  = video->get_width();
 		img_height = video->get_height();
 
-		me = std::unique_ptr<IMotionEstimation> (make_me_cuda(img_width, img_height));
+		me = std::auto_ptr<IMotionEstimation> (make_me_cpu(img_width, img_height));
 
 		result.update_texture(img_width, img_height, /*data=*/0);
 	}

@@ -8,3 +8,6 @@
 /win32/ipch/wxwidgets-win32-44d68b94/*.ipch
 /win32/*.sdf
 /win32/*.suo
+*.swp
+*.o
+src/cuda-video-gui
