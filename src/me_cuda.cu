@@ -158,3 +158,16 @@ IMotionEstimation* make_me_cuda(int width, int height)
 {
 	return new CUDAMotionEstimation(width, height);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

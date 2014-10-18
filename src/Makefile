@@ -45,13 +45,20 @@ LIB_FLAGS += $(CV_LIB_FLAGS)
 LIB_FLAGS += $(BOOST_LIB_FLAGS)
 LIB_FLAGS += $(CUDA_LIB_FLAGS)
 
+BIN = cuda-video-gui
+
 default: run
 
-run: cuda-video-gui
-	(cd ../bin_data/; ../src/cuda-video-gui )
+all:     $(BIN)
 
-cuda-video-gui: $(HEADERS) $(OBJECTS)
-	$(CXX) $(OBJECTS) $(LIB_FLAGS) -o $@
+run: $(BIN)
+	(cd ../bin_data/; ../src/$(BIN) )
+
+clean:
+	rm -f $(BIN) *.o
+	
+$(BIN): $(HEADERS) $(OBJECTS)
+	$(CXX) $(OBJECTS) $(LIB_FLAGS) -o $(BIN)
 
 %.o: %.cpp
 	$(CXX) $(CXX_FLAGS) -c -o $@ $<
