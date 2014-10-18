@@ -3,6 +3,8 @@
 
 #include <string>
 
+// ====================================================================
+// Interface for video reader
 class IVideoReader
 {
 public:
@@ -15,8 +17,11 @@ public:
 	virtual void  seek(int frame)  = 0;
 
 	virtual void* get_next_frame() = 0;
+	virtual void* get_this_frame() = 0;	// Returns the same data as the last call to get_next_frame
 };
 
+// ====================================================================
+// Factory methods to make video readers
 IVideoReader* make_opencv_image_reader(const std::string& filename);
 IVideoReader* make_opencv_video_reader(const std::string& filename);
 

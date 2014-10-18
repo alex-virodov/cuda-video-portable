@@ -96,7 +96,7 @@ void thread_func(wxGLCanvas* canvas)
 
 bool MyApp::OnInit()
 {
-	MyFrame *frame = new MyFrame( "Hello World", wxPoint(50, 50), wxSize(800, 600) );
+	MyFrame *frame = new MyFrame( "Video + CUDA", wxPoint(50, 50), wxSize(800, 600) );
 	
 
 	frame->Show( true );

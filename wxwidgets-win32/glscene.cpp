@@ -23,6 +23,9 @@ public:
 	GLuint  img_width;
 	GLuint  img_height;
 
+	GLuint  view_width;
+	GLuint  view_height;
+
 	static const int n_frames = 2;
 
 	// TODO: Make texture management objects. Or use library.
@@ -30,6 +33,7 @@ public:
 	GLuint  tex_result[1];        // textures for result of processing
 
 	IMotionEstimation* me;
+	std::unique_ptr<IVideoReader> video;
 
 	GLSceneImpl() : rtri(0), rquad(200) 
 	{
@@ -37,16 +41,21 @@ public:
 		for (int i = 0; i < n_frames; i++) { tex_frames[i] = 0; }
 	}
 
-	void make_texture(GLuint tex_id, void* img_data)
+	void make_texture(GLuint tex_id, void* img_data = 0)
 	{
 		glBindTexture( GL_TEXTURE_2D, tex_id );
 
 		// set basic parameters
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,  GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,  GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+		update_texture(tex_id, img_data);
+	}
+
+	void update_texture(GLuint tex_id, void* img_data)
+	{
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, img_width, img_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data );
 	}
 };
@@ -60,18 +69,15 @@ GLScene::GLScene() : impl(new GLSceneImpl)
 {
 	glewInit();
 
-	std::unique_ptr<IVideoReader> frame1 /*=*/ (make_opencv_image_reader("ball_frame1.bmp"));
-	std::unique_ptr<IVideoReader> frame2 /*=*/ (make_opencv_image_reader("ball_frame2.bmp"));
+	impl->video = std::unique_ptr<IVideoReader>(
+		make_opencv_video_reader("clipcanvas_14348_H264_320x180.mp4"));
 
 	assert(impl->n_frames == 2);
 
-	if (frame1->is_loaded() && frame2->is_loaded())
+	if (impl->video->is_loaded())
 	{
-		assert(frame1->get_width () == frame2->get_width ());
-		assert(frame1->get_height() == frame2->get_height());
-
-		impl->img_width  = frame1->get_width();
-		impl->img_height = frame1->get_height();
+		impl->img_width  = impl->video->get_width();
+		impl->img_height = impl->video->get_height();
 
 		impl->me = make_me_cuda(impl->img_width, impl->img_height);
 
@@ -82,50 +88,7 @@ GLScene::GLScene() : impl(new GLSceneImpl)
 		impl->make_texture(impl->tex_result[0], /*img_data=*/0);
 
 		// Make source frames
-		for (int i = 0; i < impl->n_frames; i++) 
-		{
-			// TODO: work with lists if more than two frames are expected
-			void* img_data = (i == 0 ? frame1->get_next_frame() : frame2->get_next_frame());
-
-			impl->make_texture(impl->tex_frames[i], img_data);
-		}
-
-		impl->me->load_frame(0, frame1->get_next_frame());
-		impl->me->load_frame(1, frame2->get_next_frame());
-		impl->me->estimate();
-		impl->me->store_result(impl->tex_result[0]);
-
-
-
-
-
-#if 0
-		cuda_opengl_init(impl->n_frames, impl->tex_frames, impl->tex_result[0]);
-
-
-
-//		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image->width, image->height, GL_RGBA, GL_UNSIGNED_BYTE, image->data);
-
-
-		// TODO: Check that we have the PBO extension
-		glGenBuffers( 1, &impl->pbo );
-		glBindBuffer( GL_PIXEL_UNPACK_BUFFER, impl->pbo );
-		glBufferData( GL_PIXEL_UNPACK_BUFFER, image->width*image->height*4, image->data, GL_STREAM_DRAW );
- 
-
-		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, impl->pbo);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, image->width, image->height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-
-
-		// Unbind the texture
-		glBindBuffer   ( GL_PIXEL_UNPACK_BUFFER, 0 );
-		glBindTexture  ( GL_TEXTURE_2D, 0 );
-
-		cuda_opengl_init(impl->texture, impl->pbo);
-
-		// Copy from PBO to texture
-//		cuda_opengl_process();
-#endif
+		for (int i = 0; i < impl->n_frames; i++) { impl->make_texture(impl->tex_frames[i]); }
 	}
 }
 
@@ -142,13 +105,13 @@ void GLScene::resize(int width, int height)
 {
 	// Initialization is also here
 	glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
-	glClearColor(0.0f, 0.0f, 0.0f, 0.5f);				// Black Background
+	glClearColor(0.1f, 0.1f, 0.1f, 0.5f);				// Black Background
 	glClearDepth(1.0f);									// Depth Buffer Setup
 	glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
 	glDepthFunc(GL_LEQUAL);								// The Type Of Depth Testing To Do
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
 
-    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClearColor(0.5f, 0.5f, 0.5f, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glViewport(0, 0, (GLint)width, (GLint)height);
@@ -156,7 +119,11 @@ void GLScene::resize(int width, int height)
 	glLoadIdentity();									// Reset The Projection Matrix
 
 	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(45.0f,(GLfloat)width/(GLfloat)height,0.1f,100.0f);
+//	gluPerspective(45.0f,(GLfloat)width/(GLfloat)height,0.1f,100.0f);
+
+	// Record viewport size for later 3d perspective matrix computation
+	impl->view_width  = width;
+	impl->view_height = height;
 }
 
 
@@ -172,13 +139,62 @@ void GLScene::render()
 
 
 	glLoadIdentity();									// Reset The Current Modelview Matrix
-	glTranslatef(0.0f,0.0f,-7.0f);						// Move Right 1.5 Units And Into The Screen 7.0
-	glRotatef(impl->rquad,1.0f,1.0f,1.0f);					// Rotate The Quad On The X axis ( NEW )
+//	glTranslatef(0.0f,0.0f,-4.0f);						// Move Right 1.5 Units And Into The Screen 7.0
+	//glRotatef(impl->rquad,1.0f,1.0f,1.0f);					// Rotate The Quad On The X axis ( NEW )
 
 	glEnable(GL_TEXTURE_2D);							// Enable Texture Mapping 
 	glColor3d(1,1,1);
 
 	assert(impl->n_frames == 2);
+
+	// Upload next video frame
+	glBindTexture(GL_TEXTURE_2D, impl->tex_frames[0]);
+	impl->update_texture(impl->tex_frames[0], impl->video->get_this_frame());
+	
+	impl->me->load_frame(0, impl->video->get_this_frame());
+
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.0f,  1.0f,  1.0f);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.0f,  0.0f,  1.0f);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  0.0f,  1.0f);
+	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, impl->tex_frames[1]);
+	impl->update_texture(impl->tex_frames[0], impl->video->get_next_frame());
+
+	impl->me->load_frame(1, impl->video->get_this_frame());
+
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.0f,  1.0f,  1.0f);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  0.0f,  1.0f);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.0f,  0.0f,  1.0f);
+	glEnd();
+
+	impl->me->estimate();
+	impl->me->store_result(impl->tex_result[0]);
+
+	glBindTexture(GL_TEXTURE_2D, impl->tex_result[0]);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.0f,  0.0f,  1.0f);
+		glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f,  0.0f,  1.0f);
+		glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
+		glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.0f, -1.0f,  1.0f);
+	glEnd();
+
+	// 3D Cube - just because why not :)
+    glViewport(0, 0, impl->view_width/2, impl->view_height/2);
+	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+	glLoadIdentity();									// Reset The Projection Matrix
+
+	// Calculate The Aspect Ratio Of The Window
+	gluPerspective(45.0f,(GLfloat)impl->view_width/(GLfloat)impl->view_height,0.1f,100.0f);
+
+	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
+	glLoadIdentity();									// Reset The Modelview Matrix
+	glTranslatef(0.0f,0.0f,-5.0f);						// Move Right 1.5 Units And Into The Screen 7.0
+	glRotatef(impl->rquad,1.0f,1.0f,1.0f);				// Rotate The Quad On The X axis ( NEW )
 
 	glBindTexture(GL_TEXTURE_2D, impl->tex_frames[0]);        // Select Our Texture
 	glBegin(GL_QUADS);

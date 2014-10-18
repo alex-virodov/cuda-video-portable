@@ -47,7 +47,7 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>PCH</Filter>
     </ClCompile>
-    <ClCompile Include="video_opencv_image.cpp">
+    <ClCompile Include="video_opencv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
