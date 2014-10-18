@@ -6,14 +6,14 @@
 #======================================================================
 # Project sources
 HEADERS := $(wildcard *.h)
-SOURCES := $(wildcard *.cpp)
+SOURCES := $(wildcard *.cpp *.cu)
 OBJECTS := $(SOURCES:%.cpp=%.o)
 OBJECTS := $(OBJECTS:%.cu=%.o)
 
 #======================================================================
 # CUDA configuration
 NVCC = nvcc
-#CUDA_LIB_FLAGS = -L/usr/local/cuda-6.5/lib -lcudart
+CUDA_LIB_FLAGS = -L/usr/local/cuda-6.5/lib64 -lcudart
 
 
 #======================================================================

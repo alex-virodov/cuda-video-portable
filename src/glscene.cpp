@@ -110,7 +110,7 @@ GLSceneImpl::GLSceneImpl() : cube_angle(200)
 		img_width  = video->get_width();
 		img_height = video->get_height();
 
-		me = std::auto_ptr<IMotionEstimation> (make_me_cpu(img_width, img_height));
+		me = std::auto_ptr<IMotionEstimation> (make_me_cuda(img_width, img_height));
 
 		result.update_texture(img_width, img_height, /*data=*/0);
 	}
