@@ -36,6 +36,11 @@ GLTexture::GLTexture()
 
 	glBindTexture( GL_TEXTURE_2D, tex_id );
 
+	// from GLEW, not in plain OpenGL on windows.
+	#ifndef GL_CLAMP_TO_EDGE
+		#define GL_CLAMP_TO_EDGE 0x812F
+	#endif
+
 	// set basic parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,  GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,  GL_CLAMP_TO_EDGE);
