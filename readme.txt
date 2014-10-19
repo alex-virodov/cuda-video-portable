@@ -1,10 +1,10 @@
 Demo code to try interoperation between OpenGL and CUDA.
 
 Build (Windows):
-TODO
+Visual Studio 2010 project in 'win32' directory
 
 Build (Linux):
-TODO
+Do 'make' in 'src'.
 
 
 
